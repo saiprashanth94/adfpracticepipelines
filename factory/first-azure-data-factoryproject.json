@@ -1,0 +1,9 @@
+{
+	"name": "first-azure-data-factoryproject",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "00c5f996-5698-4139-8178-be336507dfc0",
+		"tenantId": "d5b1d332-d765-4b9a-8158-7a0b5b9fa436"
+	}
+}

@@ -1,0 +1,168 @@
+{
+	"name": "SCD_Type2_dataflow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText16",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable7",
+						"type": "DatasetReference"
+					},
+					"name": "source2"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable8",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable8",
+						"type": "DatasetReference"
+					},
+					"name": "sink2"
+				}
+			],
+			"transformations": [
+				{
+					"name": "select1"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "exists1"
+				},
+				{
+					"name": "select2"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "alterRow1"
+				},
+				{
+					"name": "exists2"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "alterRow2"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ID as short,",
+				"          First_name as string,",
+				"          Last_name as string,",
+				"          City as string,",
+				"          Start_Date as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"source(output(",
+				"          ID as integer,",
+				"          First_name as string,",
+				"          Last_name as string,",
+				"          City as string,",
+				"          Start_Date as date,",
+				"          End_Date as date,",
+				"          Active_Flag as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source2",
+				"source1 select(mapColumn(",
+				"          ID,",
+				"          First_name,",
+				"          Last_name,",
+				"          City,",
+				"          Start_Date",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"source2 filter(Active_Flag == 1) ~> filter1",
+				"select1, select2 exists(select1@ID ==select2@ID && select1@First_name == select2@First_name && select1@Last_name == select2@Last_name && select1@City == select2@City,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> exists1",
+				"filter1 select(mapColumn(",
+				"          ID,",
+				"          First_name,",
+				"          Last_name,",
+				"          City,",
+				"          Start_Date,",
+				"          End_Date,",
+				"          Active_Flag",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"exists1 derive(End_Date = toDate('2099-06-02'),",
+				"          Active_Flag = 1) ~> derivedColumn1",
+				"derivedColumn1 alterRow(insertIf(1==1)) ~> alterRow1",
+				"select2, exists1 exists(select2@ID == select1@ID,",
+				"     negate:false,",
+				"     broadcast: 'auto')~> exists2",
+				"exists2 derive(End_Date = toDate(currentTimestamp()),",
+				"          Active_Flag = 0) ~> derivedColumn2",
+				"derivedColumn2 alterRow(updateIf(1==1)) ~> alterRow2",
+				"alterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ID as integer,",
+				"          First_name as string,",
+				"          Last_name as string,",
+				"          City as string,",
+				"          Start_Date as date,",
+				"          End_Date as date,",
+				"          Active_Flag as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1",
+				"alterRow2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ID as integer,",
+				"          First_name as string,",
+				"          Last_name as string,",
+				"          City as string,",
+				"          Start_Date as date,",
+				"          End_Date as date,",
+				"          Active_Flag as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['ID'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink2"
+			]
+		}
+	}
+}
