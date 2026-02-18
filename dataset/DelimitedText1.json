@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "products (1).csv",
+				"fileName": "customers (2).csv",
 				"fileSystem": "input-data"
 			},
 			"columnDelimiter": ",",
@@ -20,19 +20,23 @@
 		},
 		"schema": [
 			{
-				"name": "product_id",
+				"name": "customer_id",
 				"type": "String"
 			},
 			{
-				"name": "product_name",
+				"name": "name",
 				"type": "String"
 			},
 			{
-				"name": "category",
+				"name": "email",
 				"type": "String"
 			},
 			{
-				"name": "unit_price",
+				"name": "country",
+				"type": "String"
+			},
+			{
+				"name": "signup_date",
 				"type": "String"
 			}
 		]
